@@ -22,27 +22,25 @@ MODEL_DIR = ROOT / "model"
 SAMPLE_CSV = ROOT / "test_data.csv"
 CLASS_NAMES = ["Not spam (0)", "Spam (1)"]
 
-st.set_page_config(page_title="Spam Sentinel | ML Assignment 2", page_icon="✉️", layout="wide")
+st.set_page_config(page_title="Spam Sentinel | ML Assignment 2", layout="wide")
+
+ACCENT = "#2f4a6d"   # single muted accent used in charts
+sns.set_theme(style="whitegrid", font_scale=0.9)
 
 st.markdown(
     """
     <style>
-      .block-container {padding-top: 1.6rem;}
-      .hero {background: linear-gradient(90deg,#14365d 0%,#1f6f8b 100%);
-             color:#fff; padding:1.1rem 1.4rem; border-radius:12px; margin-bottom:1rem;}
-      .hero h1 {font-size:1.7rem; margin:0; color:#fff;}
-      .hero p {margin:.3rem 0 0 0; opacity:.9;}
-      div[data-testid="stMetric"] {background:#f3f7fb; border:1px solid #dbe6f0;
-             border-radius:10px; padding:.6rem .8rem;}
+      .block-container {padding-top: 2rem; max-width: 1200px;}
+      div[data-testid="stMetric"] {border-bottom: 1px solid #e5e7eb; padding: .2rem 0 .5rem 0;}
+      div[data-testid="stMetricValue"] {font-size: 1.5rem;}
     </style>
-    <div class="hero">
-      <h1>✉️ Spam Sentinel</h1>
-      <p>Five classifiers trained on the UCI Spambase data. Upload a labelled test CSV,
-      pick a model and see how it performs - no retraining happens in this app.</p>
-    </div>
     """,
     unsafe_allow_html=True,
 )
+st.title("Spam Sentinel")
+st.caption("Spam e-mail classification on the UCI Spambase dataset · five pre-trained models · "
+           "upload a labelled test CSV to evaluate them (no retraining in this app)")
+st.divider()
 
 
 # ---------------------------------------------------------------- loading
@@ -80,19 +78,19 @@ FEATURES, TARGET = META["features"], META["target"]
 
 # ---------------------------------------------------------------- sidebar
 with st.sidebar:
-    st.header("1 · Test data")
+    st.subheader("Test data")
     uploaded = st.file_uploader("Upload test CSV (features + target)", type=["csv"])
     st.caption(f"Needs all {len(FEATURES)} feature columns and the target column "
                f"`{TARGET}` (0 = not spam, 1 = spam).")
     if SAMPLE_CSV.exists():
-        st.download_button("⬇️ Download sample test_data.csv", SAMPLE_CSV.read_bytes(),
+        st.download_button("Download sample test_data.csv", SAMPLE_CSV.read_bytes(),
                            file_name="test_data.csv", mime="text/csv")
         use_sample = st.checkbox("No file? Use the bundled test_data.csv", value=False,
                                  disabled=uploaded is not None)
     else:
         use_sample = False
 
-    st.header("2 · Model")
+    st.subheader("Model")
     model_name = st.selectbox("Choose a classifier", list(MODELS.keys()),
                               index=list(MODELS.keys()).index("Support Vector Machine"))
     threshold = st.slider("Spam decision threshold (probability)", 0.05, 0.95, 0.50, 0.05,
@@ -109,10 +107,10 @@ elif use_sample:
     df = pd.read_csv(SAMPLE_CSV)
     source = "bundled test_data.csv"
 else:
-    st.info("👈 Upload a test CSV in the sidebar (or tick *Use the bundled test_data.csv*) to begin.")
+    st.info("Upload a test CSV in the sidebar, or tick *Use the bundled test_data.csv*, to begin.")
     st.subheader("Reference results on the held-out test split")
     st.dataframe(REF_METRICS.set_index("ML Model Name").style.format("{:.4f}")
-                 .highlight_max(axis=0, color="#cfe8d5"), width="stretch")
+                 .highlight_max(axis=0, color="#e5e7eb"), width="stretch")
     st.stop()
 
 missing = [c for c in FEATURES if c not in df.columns]
@@ -134,7 +132,7 @@ c2.metric("Spam share", f"{y.mean():.1%}")
 c3.metric("Data source", source)
 
 tab_model, tab_compare, tab_data, tab_about = st.tabs(
-    ["📊 Selected model", "🏁 Compare all models", "🔎 Data & predictions", "ℹ️ About"])
+    ["Selected model", "Compare all models", "Data & predictions", "About"])
 
 # ---------------------------------------------------------------- selected model
 model = MODELS[model_name]
@@ -151,7 +149,7 @@ sel = {
 }
 
 with tab_model:
-    st.subheader(f"{model_name} — evaluation metrics")
+    st.subheader(model_name)
     cols = st.columns(6)
     for col, (k, v) in zip(cols, sel.items()):
         col.metric(k, "n/a" if pd.isna(v) else f"{v:.4f}")
@@ -163,10 +161,11 @@ with tab_model:
         st.markdown("**Confusion matrix**")
         cm = confusion_matrix(y, y_pred, labels=[0, 1])
         fig, ax = plt.subplots(figsize=(4.6, 3.8))
-        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False,
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Greys", linewidths=0.5, linecolor="#d1d5db", cbar=False,
                     xticklabels=CLASS_NAMES, yticklabels=CLASS_NAMES, ax=ax)
         ax.set_xlabel("Predicted")
         ax.set_ylabel("Actual")
+        sns.despine(ax=ax, left=True, bottom=True)
         st.pyplot(fig, width="stretch")
         tn, fp, fn, tp = cm.ravel()
         st.caption(f"{fp} genuine e-mails flagged as spam · {fn} spam e-mails missed")
@@ -175,7 +174,7 @@ with tab_model:
         if y.nunique() == 2:
             fpr, tpr, _ = roc_curve(y, y_prob)
             fig, ax = plt.subplots(figsize=(4.6, 3.8))
-            ax.plot(fpr, tpr, color="#1f6f8b", lw=2, label=f"AUC = {sel['AUC']:.3f}")
+            ax.plot(fpr, tpr, color=ACCENT, lw=2, label=f"AUC = {sel['AUC']:.3f}")
             ax.plot([0, 1], [0, 1], ls="--", color="grey", lw=1)
             ax.set_xlabel("False positive rate")
             ax.set_ylabel("True positive rate")
@@ -197,18 +196,20 @@ with tab_compare:
         metrics, _, _ = score(m, X, y)
         rows.append({"ML Model Name": name, **metrics})
     comp = pd.DataFrame(rows).set_index("ML Model Name")
-    st.dataframe(comp.style.format("{:.4f}").highlight_max(axis=0, color="#cfe8d5"),
+    st.dataframe(comp.style.format("{:.4f}").highlight_max(axis=0, color="#e5e7eb"),
                  width="stretch")
     best = comp["MCC"].idxmax()
-    st.success(f"Best model on this file by MCC: **{best}** (MCC = {comp.loc[best, 'MCC']:.4f})")
+    st.markdown(f"Best model on this file by MCC: **{best}** ({comp.loc[best, 'MCC']:.4f})")
 
     long = comp.reset_index().melt(id_vars="ML Model Name", var_name="Metric", value_name="Score")
     fig, ax = plt.subplots(figsize=(10, 3.8))
-    sns.barplot(data=long, x="Metric", y="Score", hue="ML Model Name", palette="crest", ax=ax)
+    sns.barplot(data=long, x="Metric", y="Score", hue="ML Model Name", palette=sns.light_palette(ACCENT, n_colors=6)[1:], ax=ax)
     ax.set_ylim(max(0, long["Score"].min() - 0.05), 1)
     ax.legend(fontsize=8, ncol=5, loc="upper center", bbox_to_anchor=(0.5, 1.18), frameon=False)
+    ax.set_xlabel("")
+    sns.despine(ax=ax)
     st.pyplot(fig, width="stretch")
-    st.download_button("⬇️ Download comparison table", comp.round(4).to_csv().encode(),
+    st.download_button("Download comparison table", comp.round(4).to_csv().encode(),
                        file_name="model_comparison.csv", mime="text/csv")
 
 # ---------------------------------------------------------------- data
@@ -222,7 +223,7 @@ with tab_data:
     view = out[~out["correct"]] if only_wrong else out
     st.dataframe(view[[TARGET, "predicted", "spam_probability", "correct"] + FEATURES].head(500),
                  width="stretch", height=360)
-    st.download_button("⬇️ Download predictions", out.to_csv(index=False).encode(),
+    st.download_button("Download predictions", out.to_csv(index=False).encode(),
                        file_name=f"predictions_{model_name.lower().replace(' ', '_')}.csv",
                        mime="text/csv")
 
