@@ -2,8 +2,8 @@
 
 **M.Tech (AIML) · Machine Learning · Assignment 2**
 
-- **GitHub repository:** [[PASTE-YOUR-GITHUB-REPO-LINK-HERE]]
-- **Live Streamlit app:** [[PASTE-YOUR-STREAMLIT-APP-LINK-HERE]]
+- **GitHub repository:** https://github.com/2026aj05947/2026aj05947-assignment-2-ml
+- **Live Streamlit app:** https://2026aj05947-assignment-2-ml.streamlit.app
 
 ---
 
@@ -53,7 +53,7 @@ interactive Streamlit app.
 
 ## c. GitHub repository link
 
-[[PASTE-YOUR-GITHUB-REPO-LINK-HERE]]
+https://github.com/2026aj05947/2026aj05947-assignment-2-ml
 
 Repository structure:
 
@@ -63,6 +63,7 @@ spam-classifier-ml/
 ├── train_models.py                # data split, CV tuning, training, evaluation, saving
 ├── 2026AJ05947.ipynb              # notebook (EDA + training + results)
 ├── requirements.txt
+├── .streamlit/config.toml         # light theme for the app
 ├── README.md
 ├── test_data.csv                  # held-out test split (57 features + is_spam)
 ├── data/
@@ -104,6 +105,8 @@ default 0.5 threshold.
 | Naive Bayes            | 0.8278     | 0.9537     | 0.7108     | 0.9583 | 0.8162     | 0.6870     |
 | Support Vector Machine | **0.9359** | **0.9799** | **0.9462** | 0.8899 | **0.9172** | **0.8660** |
 
+> KNN AUC is 0.9709 on Linux (Streamlit Cloud); running the notebook on macOS gives 0.9720 for the same saved model because of floating-point differences in distance-weighted neighbour probabilities. All other values are identical.
+
 ### Confusion matrix summary on the test set (842 e-mails: 506 genuine, 336 spam)
 
 | ML Model Name          | Genuine e-mails correctly kept (TN) | Genuine e-mails wrongly flagged as spam (FP) | Spam e-mails missed (FN) | Spam e-mails correctly caught (TP) |
@@ -132,7 +135,7 @@ default 0.5 threshold.
 Features (all computed from the **saved** models — nothing is retrained on the uploaded data):
 
 - **CSV upload** of test data (must contain the 57 feature columns and `is_spam`); a sample
-  `test_data.csv` can be downloaded or loaded from the sidebar.
+  `test_data.csv` can be downloaded or loaded with the "Use bundled test_data.csv" switch.
 - **Model selection dropdown** for the five classifiers, plus an adjustable decision threshold.
 - **Evaluation metrics**: Accuracy, AUC, Precision, Recall, F1, MCC.
 - **Confusion matrix**, **classification report** and ROC curve for the selected model.
@@ -147,5 +150,5 @@ python train_models.py          # optional - re-creates model/ and test_data.csv
 streamlit run app.py
 ```
 
-> The saved `.joblib` models were produced with scikit-learn 1.9.1 (see `model/meta.json`);
+> The saved `.joblib` models were produced with scikit-learn 1.9.0 (see `model/meta.json`);
 > `requirements.txt` pins the same version so the models load correctly on Streamlit Community Cloud.
