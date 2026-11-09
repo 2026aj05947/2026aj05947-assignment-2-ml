@@ -37,7 +37,30 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+st.markdown(
+    """
+    <style>
+      .meta-row {display:flex; flex-wrap:wrap; gap:.4rem 2.2rem; margin:-.4rem 0 .9rem 0;
+                 font-size:.85rem; color:#4b5563;}
+      .meta-row div span {display:block; font-size:.68rem; letter-spacing:.06em;
+                 text-transform:uppercase; color:#9ca3af; margin-bottom:.05rem;}
+      .meta-row div b {font-weight:600; color:#1f2937;}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 st.title("Spam Sentinel")
+st.markdown(
+    """
+    <div class="meta-row">
+      <div><span>Course</span><b>AIMLZG565</b> · Machine Learning</div>
+      <div><span>Assignment</span><b>Assignment 2</b></div>
+      <div><span>Name</span><b>Raghu Prashanka</b></div>
+      <div><span>Student ID</span><b>2026AJ05947</b></div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 st.caption("Spam e-mail classification on the UCI Spambase dataset · five pre-trained models · "
            "upload a labelled test CSV to evaluate them (no retraining in this app)")
 st.divider()
