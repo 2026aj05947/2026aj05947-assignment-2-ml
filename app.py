@@ -35,10 +35,10 @@ st.markdown(
       div[data-testid="stVerticalBlock"] {gap: .6rem;}
       h1 {font-size: 1.9rem !important; padding: 0 !important; margin: 0 !important;}
       .label {font-size:.92rem; font-weight:600; color:#1f2937; margin:.3rem 0 .1rem 0;}
-      .meta-row {display:flex; flex-wrap:wrap; gap:.3rem 2rem; margin:.35rem 0 .2rem 0;
+      .meta-row {display:flex; flex-wrap:wrap; gap:.5rem 2.4rem; margin:.9rem 0 0 0;
                  font-size:.82rem; color:#4b5563;}
       .meta-row div span {display:block; font-size:.64rem; letter-spacing:.06em;
-                 text-transform:uppercase; color:#9ca3af;}
+                 text-transform:uppercase; color:#9ca3af; margin-bottom:.15rem;}
       .meta-row div b {font-weight:600; color:#1f2937;}
       .subtle {font-size:.85rem !important; color:#6b7280; margin:.15rem 0 .9rem 0; line-height:1.4;}
       .panel {background:#f6f7f9; border:1px solid #e5e7eb; border-radius:10px;
@@ -54,6 +54,12 @@ st.markdown(
       .status b {color:#1f2937;}
       div[data-testid="stFileUploader"] section {padding: .5rem .7rem;}
       button[data-baseweb="tab"] {padding-top: .3rem; padding-bottom: .3rem;}
+      .st-key-header_box, .st-key-controls_box {border: 1.5px solid #111827 !important;
+                          border-radius: 12px; padding: 1rem 1.4rem .9rem 1.4rem;}
+      .st-key-header_box {padding-bottom: 1.25rem !important;}
+      .st-key-header_box .subtle {margin: .55rem 0 .35rem 0 !important; padding-top: .6rem;
+                                  border-top: 1px solid #e5e7eb;}
+      .st-key-controls_box {margin-bottom: .4rem;}
     </style>
     """,
     unsafe_allow_html=True,
@@ -92,40 +98,42 @@ except Exception as exc:  # pragma: no cover - shown in the UI
 FEATURES, TARGET = META["features"], META["target"]
 
 # ---------------------------------------------------------------- header
-st.title("Spam Sentinel")
-st.markdown(
-    """
-    <div class="meta-row">
-      <div><span>Course</span><b>AIMLZG565</b> · Machine Learning</div>
-      <div><span>Assignment</span><b>Assignment 2</b></div>
-      <div><span>Name</span><b>Raghu Prashanka</b></div>
-      <div><span>Student ID</span><b>2026AJ05947</b></div>
-    </div>
-    <div class="subtle">Spam e-mail classification on the UCI Spambase dataset with five pre-trained
-    models. Upload a labelled test CSV to evaluate them &mdash; nothing is retrained here.</div>
-    """,
-    unsafe_allow_html=True,
-)
+with st.container(key="header_box"):
+    st.title("Spam Sentinel")
+    st.markdown(
+        """
+        <div class="meta-row">
+          <div><span>Course</span><b>AIMLZG565</b> · Machine Learning</div>
+          <div><span>Assignment</span><b>Assignment 2</b></div>
+          <div><span>Name</span><b>Raghu Prashanka</b></div>
+          <div><span>Student ID</span><b>2026AJ05947</b></div>
+        </div>
+        <div class="subtle">Spam e-mail classification on the UCI Spambase dataset with five pre-trained
+        models. Upload a labelled test CSV to evaluate them &mdash; nothing is retrained here.</div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 # ---------------------------------------------------------------- controls
-c_data, c_model, c_thr = st.columns([1.5, 1, 1], gap="medium")
-with c_data:
-    uploaded = st.file_uploader("1. Test data (CSV with 57 features + `is_spam`)", type=["csv"])
-    s1, s2 = st.columns([1.15, 1])
-    use_sample = s1.toggle("Use bundled test_data.csv", value=False,
-                           disabled=uploaded is not None or not SAMPLE_CSV.exists())
-    if SAMPLE_CSV.exists():
-        s2.download_button("Download sample CSV", SAMPLE_CSV.read_bytes(),
-                           file_name="test_data.csv", mime="text/csv", width="stretch")
-with c_model:
-    model_name = st.selectbox("2. Model", list(MODELS.keys()),
-                              index=list(MODELS.keys()).index("Support Vector Machine"))
-    st.caption("Tuned: " + ", ".join(f"{k} = {v}" for k, v in BEST_PARAMS[model_name].items()))
-with c_thr:
-    threshold = st.slider("3. Spam threshold", 0.05, 0.95, 0.50, 0.05,
-                          help="0.50 reproduces the README numbers. Lower it to catch more "
-                               "spam, raise it to flag fewer genuine e-mails.")
-    st.caption(f"Models trained with scikit-learn {META['scikit_learn']} · seed {META['seed']}")
+with st.container(key="controls_box"):
+    c_data, c_model, c_thr = st.columns([1.5, 1, 1], gap="medium")
+    with c_data:
+        uploaded = st.file_uploader("1. Test data (CSV with 57 features + `is_spam`)", type=["csv"])
+        s1, s2 = st.columns([1.15, 1])
+        use_sample = s1.toggle("Use bundled test_data.csv", value=False,
+                               disabled=uploaded is not None or not SAMPLE_CSV.exists())
+        if SAMPLE_CSV.exists():
+            s2.download_button("Download sample CSV", SAMPLE_CSV.read_bytes(),
+                               file_name="test_data.csv", mime="text/csv", width="stretch")
+    with c_model:
+        model_name = st.selectbox("2. Model", list(MODELS.keys()),
+                                  index=list(MODELS.keys()).index("Support Vector Machine"))
+        st.caption("Tuned: " + ", ".join(f"{k} = {v}" for k, v in BEST_PARAMS[model_name].items()))
+    with c_thr:
+        threshold = st.slider("3. Spam threshold", 0.05, 0.95, 0.50, 0.05,
+                              help="0.50 reproduces the README numbers. Lower it to catch more "
+                                   "spam, raise it to flag fewer genuine e-mails.")
+        st.caption(f"Models trained with scikit-learn {META['scikit_learn']} · seed {META['seed']}")
 
 # ---------------------------------------------------------------- data
 if uploaded is not None:
